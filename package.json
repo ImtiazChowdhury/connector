@@ -1,0 +1,11 @@
+{
+  "name": "connector",
+  "version": "1.0.0",
+  "description": "fetch request simplified",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Imtiaz Chowdhury",
+  "license": "ISC"
+}
