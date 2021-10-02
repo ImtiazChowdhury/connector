@@ -8,10 +8,18 @@ class Connector {
         this._fetch = fetch || (window && window.fetch);
         this.Connector = this;
         this.joinWithBase = this.joinWithBase.bind(this);
+        this._onRequestStartDelay = 0;
+        this._runningRequest = false;
     }
 
     set fetch(fn) {
         this._fetch = fn;
+        this._onRequestStartDelay = 0;
+        this._runningRequest = false;
+    }
+
+    set onRequestStartDelay(time) {
+        this._onRequestStartDelay = time
     }
 
     set baseUrl(url) {
@@ -26,7 +34,7 @@ class Connector {
         this._headers = obj;
     }
 
-    get headers() {
+    get header() {
         return this._headers;
     }
 
@@ -134,20 +142,26 @@ class Connector {
         this._successHandler = fn;
     }
 
+    async handleRequestStart(options) {
+        this._runningRequest = true;
 
-    async _handleRequestStart(options) {
-        if (options.onRequestStart) {
-            return await options.onRequestStart();
-        } else if (this._onRequestStart) {
-            return await this._onRequestStart();
-        }
+        setTimeout(async () => {
+            if (this._runningRequest) {
+                if (options.onRequestStart) {
+                    return await options.onRequestStart();
+                } else if (this._onRequestStart) {
+                    return await this._onRequestStart();
+                }
+            }
+        }, this._onRequestStartDelay)
     }
 
     set onRequestStart(fn) {
         this._onRequestStart = fn;
     }
 
-    async _handleRequestEnd(options) {
+    async handleRequestEnd(options) {
+        this._runningRequest = false;
         if (options.onRequestEnd) {
             return await options.onRequestEnd();
         } else if (this._onRequestEnd) {
@@ -159,8 +173,8 @@ class Connector {
         this._onRequestEnd = fn;
     }
 
-    async _handleResponse(response, options) {
-        await this._handleRequestEnd(options);
+    async handleResponse(response, options) {
+        await this.handleRequestEnd(options);
         if (response.ok) {
             if (options.successHandler) {
                 return await options.successHandler(response)
@@ -181,102 +195,59 @@ class Connector {
         }
     }
 
-
-    /**
-     * 
-     * @callback requestCallback
-     * @param {Promise<object>} response  
-     */
-
-    /**
-     * send get request
-     * @param {string} url - request url, merges with baseurl property
-     * @param {object} [options] 
-     * @param {object} [options.headers] - request headers, merges with existing set headers
-     * @param {boolean} options.removeContentType - remove content-type property from request header
-     * @param {requestCallback} options.successHandler - function to execute on success, default returns response.json()
-     * @param {requestCallback} options.onRequestEnd - side effect to executes on request end 
-     * @param {requestCallback} options.errorHandler - function to execute on success
-     * @param {requestCallback} options.handle500 - function to execute on 500
-     * @param {requestCallback} options.handle404 - function to execute on 404
-     * @param {requestCallback} options.handle403 - function to execute on 403 authorization error
-     * @param {requestCallback} options.handleBadReq - function to execute on 400 <> 499
-     * @param {requestCallback} options.onNetworkError - function to execute on network error
-     * @returns {Promise<object> | *} - fetch response object if success handler not passed, otherwise return from success handler 
-     */
     async get(url, options = {}) {
-        await this._handleRequestStart(options);
+        await this.handleRequestStart(options);
         try {
             const response = await fetch(this.joinWithBase(url), {
-                headers: {
-                    ...{
-                        "content-type": "application/json"
-                    },
-                    ...this._headers,
-                    ...options.headers
-                }
+                headers: options.headers || this._headers || {
+                    'Content-Type': 'application/json'
+                },
             });
-            if (options.removeContentType) delete reqOptions.headers["content-type"]
-
-            return this._handleResponse(response, options);
+            return this.handleResponse(response, options);
         } catch (err) {
             this._handleNetworkError(options)
         }
     }
 
     async post(url, payload, options = {}) {
-        await this._handleRequestStart(options);
+        await this.handleRequestStart(options);
         const response = await fetch(this.joinWithBase(url), {
             method: "POST",
             body: (options.encoder && options.encoder(payload)) || JSON.stringify(payload),
             mode: 'cors',
-            headers: {
-                ...{
-                    "content-type": "application/json"
-                },
-                ...this._headers,
-                ...options.headers
-            }
+            headers: options.headers || this._headers || {
+                'Content-Type': 'application/json'
+            },
         });
-        if (options.removeContentType) delete reqOptions.headers["content-type"]
-
-        return this._handleResponse(response, options)
+        return this.handleResponse(response, options)
     }
     async put(url, payload, options = {}) {
-        await this._handleRequestStart(options);
+        await this.handleRequestStart(options);
         const reqOptions = {
             method: "PUT",
             body: (options.encoder && options.encoder(payload)) || JSON.stringify(payload),
             mode: 'cors',
             headers: {
-                ...{
+                ...this._headers, ...options.headers, ...{
                     "content-type": "application/json"
-                },
-                ...this._headers,
-                ...options.headers
+                }
             }
         }
 
         if (options.removeContentType) delete reqOptions.headers["content-type"]
 
         const response = await fetch(this.joinWithBase(url), reqOptions);
-        return this._handleResponse(response, options)
+        return this.handleResponse(response, options)
     }
     async delete(url, options = {}) {
-        await this._handleRequestStart(options);
+        await this.handleRequestStart(options);
         const response = await fetch(this.joinWithBase(url), {
             method: "DELETE",
-            headers: {
-                ...{
-                    "content-type": "application/json"
-                },
-                ...this._headers,
-                ...options.headers
-            }
+            headers: options.headers || this._headers || {
+                'Content-Type': 'application/json'
+            },
         });
-        if (options.removeContentType) delete reqOptions.headers["content-type"]
-
-        return this._handleResponse(response, options)
+        return this.handleResponse(response, options)
     }
 
     joinWithBase(url) {
