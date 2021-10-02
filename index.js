@@ -1,4 +1,4 @@
-export class Connector {
+class Connector {
     constructor(baseUrl) {
         this._baseUrl = baseUrl || "";
         this._successHandler = null;
@@ -6,9 +6,11 @@ export class Connector {
         this._onRequestEnd = null;
         this._headers = null;
         this._fetch = fetch || (window && window.fetch);
+        this.Connector = this;
+        this.joinWithBase = this.joinWithBase.bind(this);
     }
 
-    set fetch(fn){
+    set fetch(fn) {
         this._fetch = fn;
     }
 
@@ -29,7 +31,7 @@ export class Connector {
     }
 
     async _handle404(response) {
-        console.log("resource not found");
+        return response;
     }
 
     set handle404(fn) {
@@ -37,11 +39,18 @@ export class Connector {
     }
 
     async _handle403(response) {
-        console.log("Not authorized");
+        return response;
     }
 
     set handle403(fn) {
         this._handle403 = fn;
+    }
+    async _handle400(response) {
+        return response
+    }
+
+    set handle400(fn) {
+        this._handle400 = fn;
     }
 
     async _handleBadReq(response) {
@@ -63,6 +72,7 @@ export class Connector {
 
     async _onNetworkError() {
         console.log("Network Error");
+
     }
 
     set onNetworkError(fn) {
@@ -73,7 +83,7 @@ export class Connector {
         if (options.onNetworkError) {
             return await options.onNetworkError();
         } else if (this._onNetworkError) {
-            return await this._onNetworkError();
+            return await this._onNetworkError(options);
         }
     }
 
@@ -91,6 +101,13 @@ export class Connector {
                 return await options.handle403(response);
             } else {
                 return await this._handle403(response);
+            }
+        }
+        if (response.status === 400) {
+            if (options.handle400) {
+                return await options.handle400(response);
+            } else {
+                return await this._handle400(response);
             }
         }
         else if (response.status >= 400 && response.status < 500) {
@@ -322,4 +339,4 @@ function concatAndResolveUrl(base, relative) {
     return url.join('/');
 }
 
-export default new Connector();
+module.exports = new Connector();
