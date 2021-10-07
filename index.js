@@ -199,9 +199,11 @@ class Connector {
         await this.handleRequestStart(options);
         try {
             const response = await fetch(this.joinWithBase(url), {
-                headers: options.headers || this._headers || {
-                    'Content-Type': 'application/json'
-                },
+                headers: {
+                    ...this._headers, ...options.headers, ...{
+                        "content-type": "application/json"
+                    }
+                }
             });
             return this.handleResponse(response, options);
         } catch (err) {
@@ -215,9 +217,11 @@ class Connector {
             method: "POST",
             body: (options.encoder && options.encoder(payload)) || JSON.stringify(payload),
             mode: 'cors',
-            headers: options.headers || this._headers || {
-                'Content-Type': 'application/json'
-            },
+            headers: {
+                ...this._headers, ...options.headers, ...{
+                    "content-type": "application/json"
+                }
+            }
         });
         return this.handleResponse(response, options)
     }
@@ -243,9 +247,11 @@ class Connector {
         await this.handleRequestStart(options);
         const response = await fetch(this.joinWithBase(url), {
             method: "DELETE",
-            headers: options.headers || this._headers || {
-                'Content-Type': 'application/json'
-            },
+            headers: {
+                ...this._headers, ...options.headers, ...{
+                    "content-type": "application/json"
+                }
+            }
         });
         return this.handleResponse(response, options)
     }
