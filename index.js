@@ -126,7 +126,7 @@ class Connector {
             }
         }
 
-        else if (response.status > 500) {
+        else if (response.status >= 500) {
             if (options.handle500) {
                 return await options.handle500(response);
             } else {
