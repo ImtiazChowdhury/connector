@@ -14,14 +14,12 @@ class Connector {
 
     set fetch(fn) {
         this._fetch = fn;
-        this._onRequestStartDelay = 0;
-        this._runningRequest = false;
+        // this._onRequestStartDelay = 0;
+        // this._runningRequest = false;
     }
 
-    set onRequestStartDelay(time) {
-        this._onRequestStartDelay = time
-    }
 
+    //base url
     set baseUrl(url) {
         this._baseUrl = url
     }
@@ -30,6 +28,8 @@ class Connector {
         return this._baseUrl
     }
 
+
+    //headers
     set headers(obj) {
         this._headers = obj;
     }
@@ -38,11 +38,55 @@ class Connector {
         return this._headers;
     }
 
+
+    
+    //request start
+    set onRequestStart(fn) {
+        this._onRequestStart = fn;
+    }
+
+    set onRequestStartDelay(time) {
+        this._onRequestStartDelay = time
+    }
+    async handleRequestStart(options) {
+        this._runningRequest = true;
+
+        setTimeout(async () => {
+            if (this._runningRequest) {
+                if (options.onRequestStart) {
+                    return await options.onRequestStart();
+                } else if (this._onRequestStart) {
+                    return await this._onRequestStart();
+                }
+            }
+        }, this._onRequestStartDelay)
+    }
+
+
+
+
+    //request end
+    set onRequestEnd(fn) {
+        this._onRequestEnd = fn;
+    }
+    async handleRequestEnd(options) {
+        this._runningRequest = false;
+        if (options.onRequestEnd) {
+            return await options.onRequestEnd();
+        } else if (this._onRequestEnd) {
+            return await this._onRequestEnd();
+        }
+    }
+
+    
+
+
+
+    // status wise error handlers
     async _handle404(response, options) {
         if (this._handleBadReq) return await this._handleBadReq(response, options);
         return response;
     }
-
     set handle404(fn) {
         this._handle404 = fn;
     }
@@ -51,15 +95,14 @@ class Connector {
         if (this._handleBadReq) return await this._handleBadReq(response, options);
         return response;
     }
-
     set handle403(fn) {
         this._handle403 = fn;
     }
+
     async _handle400(response, options) {
         if (this._handleBadReq) return await this._handleBadReq(response, options);
         return response
     }
-
     set handle400(fn) {
         this._handle400 = fn;
     }
@@ -81,15 +124,15 @@ class Connector {
         this._handle500 = fn;
     }
 
+
+    //network error handler
     async _onNetworkError() {
         console.log("Network Error");
 
     }
-
     set onNetworkError(fn) {
         this._onNetworkError = fn;
     }
-
     async _handleNetworkError(options = {}) {
         if (options.onNetworkError) {
             return await options.onNetworkError();
@@ -98,6 +141,7 @@ class Connector {
         }
     }
 
+    // root error handler
     async _errorHandler(response, options) {
 
         if (response.status === 404) {
@@ -151,6 +195,8 @@ class Connector {
         this._errorHandler = fn;
     }
 
+
+    //success handler
     async _successHandler(response, options) {
         return await response.json()
     }
@@ -158,37 +204,8 @@ class Connector {
         this._successHandler = fn;
     }
 
-    async handleRequestStart(options) {
-        this._runningRequest = true;
 
-        setTimeout(async () => {
-            if (this._runningRequest) {
-                if (options.onRequestStart) {
-                    return await options.onRequestStart();
-                } else if (this._onRequestStart) {
-                    return await this._onRequestStart();
-                }
-            }
-        }, this._onRequestStartDelay)
-    }
-
-    set onRequestStart(fn) {
-        this._onRequestStart = fn;
-    }
-
-    async handleRequestEnd(options) {
-        this._runningRequest = false;
-        if (options.onRequestEnd) {
-            return await options.onRequestEnd();
-        } else if (this._onRequestEnd) {
-            return await this._onRequestEnd();
-        }
-    }
-
-    set onRequestEnd(fn) {
-        this._onRequestEnd = fn;
-    }
-
+    // root response handler
     async handleResponse(response, options) {
         await this.handleRequestEnd(options);
         if (response.ok) {
@@ -208,6 +225,11 @@ class Connector {
             }
         }
     }
+
+
+
+
+    //request methods
 
     async get(url, options = {}) {
         await this.handleRequestStart(options);
@@ -263,6 +285,7 @@ class Connector {
         const response = await fetch(this.joinWithBase(url), reqOptions);
         return this.handleResponse(response, options)
     }
+
     async delete(url, options = {}) {
         await this.handleRequestStart(options);
         const response = await fetch(this.joinWithBase(url), {
@@ -277,6 +300,8 @@ class Connector {
         });
         return this.handleResponse(response, options)
     }
+
+
 
     joinWithBase(url) {
         return Connector.joinUrl(this._baseUrl, url);
