@@ -48,16 +48,16 @@ set default behavior of `connector`  using the following properties. configurati
 * `handle401 = function(response, options)` function to call if response status is 401. Falls back to `handleBadReq` if not specified.
 * `handle400 = function(response, options)` function to call if response status is 400. Falls back to `handleBadReq` if not specified.
 * `handle500 = function(response, options)` function to call if response status is greater than 500. Falls back to `handleBadReq` if not specified.
-* `handleBadReq = function(response, options)` function to call if response status is 4\*\* or 5\*\*. Not called if specified handler is set for that given status.
+* `handleBadReq = function(response, options)` function to call if response status is 4\*\* or 5\*\*. Not called if specific handler is set for that given status.
 * `_onNetworkError = function(options)` function to call if network error occurs.
 * `successHandler = function(response, options)` called and returned on successful request. If set, whatever this function returns will be returned from the main request function. defaults to `await response.json()`
 
 ## API
 
-`connector.get(url, options)`
-`connector.post(url, payload options)`
-`connector.put(url, payload options)`
-`connector.delete(url, options)`
+`connector.get(url, options)`  
+`connector.post(url, payload options)`  
+`connector.put(url, payload options)`  
+`connector.delete(url, options)`  
 
 * `url`: URL string
 * `payload`: request payload
