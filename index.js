@@ -38,7 +38,8 @@ class Connector {
         return this._headers;
     }
 
-    async _handle404(response) {
+    async _handle404(response, options) {
+        if (this._handleBadReq) return await this._handleBadReq(response, options);
         return response;
     }
 
@@ -46,14 +47,16 @@ class Connector {
         this._handle404 = fn;
     }
 
-    async _handle403(response) {
+    async _handle403(response, options) {
+        if (this._handleBadReq) return await this._handleBadReq(response, options);
         return response;
     }
 
     set handle403(fn) {
         this._handle403 = fn;
     }
-    async _handle400(response) {
+    async _handle400(response, options) {
+        if (this._handleBadReq) return await this._handleBadReq(response, options);
         return response
     }
 
@@ -61,7 +64,7 @@ class Connector {
         this._handle400 = fn;
     }
 
-    async _handleBadReq(response) {
+    async _handleBadReq(response, options) {
         let errorResponse = await response.json();
         console.log(Object.values(errorResponse).join(", "))
     }
@@ -99,38 +102,48 @@ class Connector {
 
         if (response.status === 404) {
             if (options.handle404) {
-                return await options.handle404(response);
+                return await options.handle404(response, options);
+            } else if (options.handleBadReq) {
+                return await options.handleBadReq(response, options);
             } else {
-                return await this._handle404(response);
+                return await this._handle404(response, options);
             }
         }
         if (response.status === 403) {
             if (options.handle403) {
-                return await options.handle403(response);
+                return await options.handle403(response, options);
+            } else if (options.handleBadReq) {
+                return await options.handleBadReq(response, options);
             } else {
-                return await this._handle403(response);
+                return await this._handle403(response, options);
             }
         }
         if (response.status === 400) {
             if (options.handle400) {
-                return await options.handle400(response);
+                return await options.handle400(response, options);
+            } else if (options.handleBadReq) {
+                return await options.handleBadReq(response, options);
             } else {
-                return await this._handle400(response);
+                return await this._handle400(response, options);
             }
         }
         else if (response.status >= 400 && response.status < 500) {
             if (options.handleBadReq) {
-                return await options.handleBadReq(response);
+                return await options.handleBadReq(response, options);
+            } else if (options.handleBadReq) {
+                return await options.handleBadReq(response, options);
             } else {
-                return await this._handleBadReq(response);
+                return await this._handleBadReq(response, options);
             }
         }
 
         else if (response.status > 500) {
             if (options.handle500) {
-                return await options.handle500(response);
+                return await options.handle500(response, options);
+            } else if (options.handleBadReq) {
+                return await options.handleBadReq(response, options);
             } else {
-                return await this._handle500(response);
+                return await this._handle500(response, options);
             }
         }
     }
@@ -177,10 +190,10 @@ class Connector {
         await this.handleRequestEnd(options);
         if (response.ok) {
             if (options.successHandler) {
-                return await options.successHandler(response)
+                return await options.successHandler(response, options)
             }
             else if (this._successHandler) {
-                return await this._successHandler(response)
+                return await this._successHandler(response, options)
             }
             return await response.json()
 
