@@ -151,6 +151,9 @@ class Connector {
         this._errorHandler = fn;
     }
 
+    async _successHandler(response, options) {
+        return await response.json()
+    }
     set successHandler(fn) {
         this._successHandler = fn;
     }
@@ -195,8 +198,6 @@ class Connector {
             else if (this._successHandler) {
                 return await this._successHandler(response, options)
             }
-            return await response.json()
-
         } else {
 
             if (options.errorHandler && typeof options.errorHandler == "function") {
@@ -213,9 +214,11 @@ class Connector {
         try {
             const response = await fetch(this.joinWithBase(url), {
                 headers: {
-                    ...this._headers, ...options.headers, ...{
+                    ...this._headers,
+                    ...{
                         "content-type": "application/json"
-                    }
+                    },
+                    ...options.headers,
                 }
             });
             return this.handleResponse(response, options);
@@ -231,9 +234,11 @@ class Connector {
             body: (options.encoder && options.encoder(payload)) || JSON.stringify(payload),
             mode: 'cors',
             headers: {
-                ...this._headers, ...options.headers, ...{
+                ...this._headers,
+                ...{
                     "content-type": "application/json"
-                }
+                },
+                ...options.headers,
             }
         });
         return this.handleResponse(response, options)
@@ -245,9 +250,11 @@ class Connector {
             body: (options.encoder && options.encoder(payload)) || JSON.stringify(payload),
             mode: 'cors',
             headers: {
-                ...this._headers, ...options.headers, ...{
+                ...this._headers,
+                ...{
                     "content-type": "application/json"
-                }
+                },
+                ...options.headers,
             }
         }
 
@@ -261,9 +268,11 @@ class Connector {
         const response = await fetch(this.joinWithBase(url), {
             method: "DELETE",
             headers: {
-                ...this._headers, ...options.headers, ...{
+                ...this._headers,
+                ...{
                     "content-type": "application/json"
-                }
+                },
+                ...options.headers,
             }
         });
         return this.handleResponse(response, options)
