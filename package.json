@@ -1,6 +1,6 @@
 {
   "name": "@imtiazchowdhury/connector",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "fetch request simplified",
   "main": "index.js",
   "scripts": {
