@@ -1,7 +1,6 @@
 class Connector {
     constructor(baseUrl) {
         this._baseUrl = baseUrl || "";
-        this._successHandler = null;
         this._onRequestStart = null;
         this._onRequestEnd = null;
         this._headers = null;
