@@ -38,7 +38,7 @@ class Connector {
     }
 
 
-    
+
     //request start
     set onRequestStart(fn) {
         this._onRequestStart = fn;
@@ -77,7 +77,7 @@ class Connector {
         }
     }
 
-    
+
 
 
 
@@ -250,7 +250,7 @@ class Connector {
 
     async post(url, payload, options = {}) {
         await this.handleRequestStart(options);
-        const response = await fetch(this.joinWithBase(url), {
+        const reqOptions = {
             method: "POST",
             body: (options.encoder && options.encoder(payload)) || JSON.stringify(payload),
             mode: 'cors',
@@ -261,7 +261,10 @@ class Connector {
                 },
                 ...options.headers,
             }
-        });
+        }
+        if (options.removeContentType) delete reqOptions.headers["content-type"]
+
+        const response = await fetch(this.joinWithBase(url), reqOptions);
         return this.handleResponse(response, options)
     }
     async put(url, payload, options = {}) {
