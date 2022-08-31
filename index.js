@@ -232,8 +232,12 @@ class Connector {
 
     async get(url, options = {}) {
         await this.handleRequestStart(options);
+
+        const requestUrl = options?.externalUrl ? url : this.joinWithBase(url); // If we need to send a request to an external URL
+        // we don't want to join with base
+        
         try {
-            const response = await fetch(this.joinWithBase(url), {
+            const response = await fetch(requestUrl, {
                 headers: {
                     ...this._headers,
                     ...{
@@ -262,11 +266,15 @@ class Connector {
                 ...options.headers,
             }
         }
+        
         if (options.removeContentType) delete reqOptions.headers["content-type"]
 
-        const response = await fetch(this.joinWithBase(url), reqOptions);
+        const requestUrl = options?.externalUrl ? url : this.joinWithBase(url); // If we need to send a request to an external URL
+        // we don't want to join with base. 
+        const response = await fetch(requestUrl, reqOptions);
         return this.handleResponse(response, options)
     }
+
     async put(url, payload, options = {}) {
         await this.handleRequestStart(options);
         const reqOptions = {
@@ -284,13 +292,17 @@ class Connector {
 
         if (options.removeContentType) delete reqOptions.headers["content-type"]
 
-        const response = await fetch(this.joinWithBase(url), reqOptions);
+        const requestUrl = options?.externalUrl ? url : this.joinWithBase(url); // If we need to send a request to an external URL
+        // we don't want to join with base. 
+        const response = await fetch(requestUrl, reqOptions);
         return this.handleResponse(response, options)
     }
 
     async delete(url, options = {}) {
         await this.handleRequestStart(options);
-        const response = await fetch(this.joinWithBase(url), {
+        const requestUrl = options?.externalUrl ? url : this.joinWithBase(url); // If we need to send a request to an external URL
+        // we don't want to join with base. (not necessary on delete request but a library should have all available options) 
+        const response = await fetch(requestUrl, {
             method: "DELETE",
             headers: {
                 ...this._headers,
