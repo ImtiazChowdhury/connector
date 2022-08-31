@@ -316,7 +316,6 @@ class Connector {
     }
 
 
-
     joinWithBase(url) {
         return Connector.joinUrl(this._baseUrl, url);
     }
