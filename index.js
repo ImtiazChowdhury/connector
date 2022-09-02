@@ -17,7 +17,6 @@ class Connector {
         // this._runningRequest = false;
     }
 
-
     //base url
     set baseUrl(url) {
         this._baseUrl = url
@@ -27,7 +26,6 @@ class Connector {
         return this._baseUrl
     }
 
-
     //headers
     set headers(obj) {
         this._headers = obj;
@@ -36,8 +34,6 @@ class Connector {
     get header() {
         return this._headers;
     }
-
-
 
     //request start
     set onRequestStart(fn) {
@@ -61,9 +57,6 @@ class Connector {
         }, this._onRequestStartDelay)
     }
 
-
-
-
     //request end
     set onRequestEnd(fn) {
         this._onRequestEnd = fn;
@@ -76,10 +69,6 @@ class Connector {
             return await this._onRequestEnd();
         }
     }
-
-
-
-
 
     // status wise error handlers
     async _handle404(response, options) {
@@ -194,7 +183,6 @@ class Connector {
         this._errorHandler = fn;
     }
 
-
     //success handler
     async _successHandler(response, options) {
         return await response.json()
@@ -202,7 +190,6 @@ class Connector {
     set successHandler(fn) {
         this._successHandler = fn;
     }
-
 
     // root response handler
     async handleResponse(response, options) {
@@ -224,9 +211,6 @@ class Connector {
             }
         }
     }
-
-
-
 
     //request methods
 
@@ -314,7 +298,6 @@ class Connector {
         });
         return this.handleResponse(response, options)
     }
-
 
     joinWithBase(url) {
         return Connector.joinUrl(this._baseUrl, url);
